@@ -1,9 +1,9 @@
 from setuptools import setup
 
 setup(
-    name='pydoro',
+    name='pypo',
     version='0.1',
-    py_modules=['jarvis'],
+    py_modules=['pypo'],
     install_requires=[
         'click',
         'ffmpeg-python',
@@ -12,6 +12,6 @@ setup(
     ],
     entry_points='''
         [console_scripts]
-        pydoro=pydoro:cli
+        pypo=pypo:cli
     '''
 )

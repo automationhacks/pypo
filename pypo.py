@@ -17,8 +17,10 @@ CLOCK_EMOJI = emoji.emojize(':alarm_clock:', use_aliases=True)
 
 @click.group()
 def cli():
-    """Pydoro is your personal pomodoro timer and work log recorder"""
-    pass
+    """Pypo is your personal pomodoro timer and work log recorder"""
+    db_present = os.path.isfile('db/timer.json')
+    if not db_present:
+        create_db()
 
 
 @cli.command()
@@ -31,6 +33,8 @@ def timer(until, task):
 
     try:
         print(f'Starting task => "{task}"')
+        print('Press Control + C to exit ... ')
+        print()
         print_timer_until(until)
     except KeyboardInterrupt:
         print_session_end(task)
@@ -134,12 +138,16 @@ def flush(data_for):
     user_input = str(input())
     if user_input == 'y':
         if data_for == 'all':
-            template = """{"logs": []}"""
-            with open('db/timer.json', 'w') as f:
-                f.write(template)
+            create_db()
             print('Your db has been reset. You have a clean slate again...')
     else:
         print('Good choice. Past is important to remember...')
+
+
+def create_db():
+    template = """{"logs": []}"""
+    with open('db/timer.json', 'w') as f:
+        f.write(template)
 
 
 def get_date():
