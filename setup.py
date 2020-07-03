@@ -1,9 +1,9 @@
 from setuptools import setup
 
 setup(
-    name='jarvis',
+    name='pydoro',
     version='0.1',
-    py_modules=['pomodoro'],
+    py_modules=['jarvis'],
     install_requires=[
         'click',
         'ffmpeg-python',
@@ -12,6 +12,6 @@ setup(
     ],
     entry_points='''
         [console_scripts]
-        pomodoro=pomodoro:cli
+        pydoro=pydoro:cli
     '''
 )
