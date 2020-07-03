@@ -27,8 +27,10 @@ def cli():
 @click.option('--work_on', default='',
               help='What are you working on in this block?')
 def timer(until, work_on):
+    day = dt.utcnow().strftime('%Y-%m-%d')
     started_at = get_current_utc_time()
     work_record = {
+        'day': day,
         'started_at': started_at,
         'task': work_on
     }
@@ -48,6 +50,37 @@ def timer(until, work_on):
         log_work(work_record)
 
 
+@cli.command()
+@click.option('--for_day', default='today',
+              help='print work log done so far (Choices: today, yesterday)')
+def past_work(for_day):
+    with open('store/timer.json') as f:
+        data = json.load(f)
+        for index, record in enumerate(data['work_logs']):
+            day = record['day']
+
+
+            print(
+                f'{index + 1} Day: {record["day"]} Task: {record["task"]} started at: {record["started_at"]} ended at: {record["ended_at"]}')
+
+
+@cli.command()
+@click.option("--data_for", default='all',
+              help='how much data to flush from the work record')
+def flush(data_for):
+    print('Warning: This will remove all your work record data.')
+    print('Do you still want to continue: [y/n]')
+    user_input = str(input())
+    if user_input == 'y':
+        if data_for == 'all':
+            template = """{"work_logs": []}"""
+            with open('store/timer.json', 'w') as f:
+                f.write(template)
+            print('Your data has been reset. You have a clean slate again...')
+    else:
+        print('Good choice. Past is important to remember...')
+
+
 def log_work(work_record):
     work_record['ended_at'] = get_current_utc_time()
     with open('store/timer.json', 'r+') as f:
@@ -59,7 +92,7 @@ def log_work(work_record):
 
 
 def get_current_utc_time():
-    return dt.utcnow().strftime('%Y-%m-%d %H:%M:%S')
+    return dt.utcnow().strftime('%H:%M:%S')
 
 
 def print_timer_until(current, end):
