@@ -12,6 +12,6 @@ setup(
     ],
     entry_points='''
         [console_scripts]
-        pomodoro=pomodoro:start_timer
+        pomodoro=pomodoro:cli
     '''
 )
