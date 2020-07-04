@@ -9,6 +9,7 @@ setup(
         'ffmpeg-python',
         'pydub',
         'emoji',
+        'python-dateutil'
     ],
     entry_points='''
         [console_scripts]

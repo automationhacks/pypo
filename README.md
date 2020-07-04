@@ -1,8 +1,9 @@
 # Pypo
 
-Pypo is a short abbreviation of Python pomodoro. 
-Its a simple pomodoro timer along with task tracking all in CLI and also 
-records your tasks for future reflection
+- Pypo is an abbreviation for Python pomodoro. 
+- Its a simple pomodoro cli based timer with some additional super powers
+  - It remembers the tasks that you did using the timer (stored in a JSON file) and can show you what you have done so far today or what you did yesterday (useful for standups?) 
+  - It notifies you at the timer end with a sound
 
 This is the first cut and we would be adding more features soon...
 
@@ -11,28 +12,29 @@ This is the first cut and we would be adding more features soon...
 ## Setup
 
 - Create a virtualenv using venv or pipenv
-- Once inside the venv execute below to install
+- Give install script permissions using `chmod +x install.sh`
+- Once inside the activated venv execute `install.sh` shell script to install
+- Find the `bin` folder inside your virtualenv directory
+- Execute `cp pypo /usr/local/bin` to allow pypo to be available anywhere in the terminal
 
-```zsh
-pip install --editable .
-```
 
 ## Usage
 
 Start a timer
 
 ```zsh
-pypo timer --until 2 --task "some meaningful task"
+pypo timer --until 2 --task="First task"
 ```
 
 ```zsh
-Starting task => "some meaningful task"
-Press Control + C to exit ... 
+Starting task => "First task" 😉
+Press Ctrl + C to exit ...
 
- ⏰  01:53
-Stopped working on "some meaningful task" at: 17:04:14
+ ⏰  01:58
+Stopped working on "First task" at: 10:36:19
 Logging your work..
-Remember to take a break! ... Go out for a walk... ☮️
+Good job. Remember to take a break now! ... 🏃️
+Take a walk, have water and breathe ...
 ```
 
 See work done so far
@@ -42,8 +44,11 @@ pypo time-machine
 ```
 
 ```zsh
-1 Day: 2020-07-03 Task: First task started at: 11:32:05 ended at: 11:32:20
-2 Day: 2020-07-03 Task: some meaningful task started at: 11:34:06 ended at: 11:34:20
+Work log for Day: 2020-07-04
+------------------------------
+2 RECORDS FOUND
+#1 Task: First task started at: 10:25:35 ended at: 10:25:42
+#2 Task: First task started at: 10:36:17 ended at: 10:36:26
 ```
 
 If you want to clear all existing records, execute below followed by a `y`

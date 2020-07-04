@@ -1,26 +1,27 @@
-import datetime
 import json
 import os
-import subprocess
-import time
-from datetime import datetime as dt
 
 import click
-import emoji
-from pydub.playback import PLAYER
 
-DEFAULT_TIMER_DURATION = 25
-DATE_FORMAT = '%Y-%m-%d'
-TIME_FORMAT = '%H:%M:%S'
-CLOCK_EMOJI = emoji.emojize(':alarm_clock:', use_aliases=True)
+from config.base import *
+from config.strings import BASE_TIMER_CMD
+from helpers.console import print_timer_until, print_session_end, \
+    print_work_log_to_console
+from helpers.file import create_base_db
+from helpers.sound import play_stop_timer
+from helpers.work_logger import get_date_to_lookup_by, get_filtered_records, \
+    log_work, init_work_record
 
 
 @click.group()
 def cli():
     """Pypo is your personal pomodoro timer and work log recorder"""
-    db_present = os.path.isfile('db/timer.json')
-    if not db_present:
-        create_db()
+    if not os.path.isdir(DB_DIR):
+        os.makedirs(DB_DIR)
+
+    is_db_file_present = os.path.isfile(DB_PATH)
+    if not is_db_file_present:
+        create_base_db()
 
 
 @cli.command()
@@ -32,8 +33,8 @@ def timer(until, task):
     work_record = init_work_record(task)
 
     try:
-        print(f'Starting task => "{task}"')
-        print('Press Control + C to exit ... ')
+        print(f'Starting task => "{task}" {WINK_EMOJI}')
+        print('Press Ctrl + C to exit ... ')
         print()
         print_timer_until(until)
     except KeyboardInterrupt:
@@ -41,92 +42,32 @@ def timer(until, task):
     finally:
         play_stop_timer()
         print('Logging your work..')
-        print('Remember to take a break! ... Go out for a walk... ☮️ ')
+        print(
+            f'Good job. Remember to take a break now! ... {TAKE_A_BREAK_EMOJI}️ ')
+        print(f'Take a walk, have water and breathe ... ')
         log_work(work_record)
-
-
-def init_work_record(task):
-    day = get_date()
-    started_at = get_time()
-
-    work_record = {
-        'day': day,
-        'started_at': started_at,
-        'task': task
-    }
-    return work_record
-
-
-def print_timer_until(until):
-    in_mins = until * 60
-    while in_mins:
-        mins, secs = divmod(in_mins, 60)
-        time_format = f'\r {CLOCK_EMOJI}  ' + '{:02d}:{:02d}'.format(mins, secs)
-        print(time_format, end="")
-        time.sleep(1)
-        in_mins -= 1
-
-
-def print_session_end(task):
-    print()
-    end_time = get_time(local=True)
-    print(f'Stopped working on "{task}" at: {end_time}')
-
-
-def log_work(work_record):
-    work_record['ended_at'] = get_time()
-
-    with open('db/timer.json', 'r+') as f:
-        data = json.load(f)
-        data['logs'].append(work_record)
-        f.seek(0)
-        json.dump(data, f, indent=4)
-        f.truncate()
 
 
 @cli.command()
 @click.option('--for_day', default='today',
               help='print work log done so far (Choices: today, yesterday)')
 def time_machine(for_day):
-    with open('db/timer.json') as f:
+    with open(DB_PATH) as f:
         data = json.load(f)
+        if not data['logs']:
+            print('You have not done any work yet!')
+            print('0 RECORDS FOUND')
+            print(f'Hint: Try {BASE_TIMER_CMD}')
+            return
+
         lookup_date = get_date_to_lookup_by(for_day)
         records = get_filtered_records(data, lookup_date)
 
+        print(f"Work log for Day: {records[0]['day']}")
+        print('---------------' * 2)
+        print(f'{len(records)} RECORDS FOUND')
         for index, record in enumerate(records):
             print_work_log_to_console(index, record)
-
-
-def get_date_to_lookup_by(for_day):
-    if for_day == 'today':
-        lookup_date = get_date()
-    elif for_day == 'yesterday':
-        today = datetime.date.today()
-        yesterday = today - datetime.timedelta(days=1)
-        lookup_date = yesterday.strftime(DATE_FORMAT)
-    else:
-        lookup_date = None
-    return lookup_date
-
-
-def get_filtered_records(data, lookup_date):
-    if lookup_date:
-        records = [record for record in data['logs'] if
-                   record['day'] == lookup_date]
-    else:
-        records = data['logs']
-    return records
-
-
-def print_work_log_to_console(index, record):
-    task_no = index + 1
-    day = record['day']
-    task = record['task']
-    started = record['started_at']
-    ended = record['ended_at']
-    print(
-        f'{task_no} Day: {day} Task: {task} '
-        f'started at: {started} ended at: {ended}')
 
 
 @cli.command()
@@ -135,42 +76,14 @@ def print_work_log_to_console(index, record):
 def flush(data_for):
     print('Warning: This will remove all your work record db.')
     print('Do you still want to continue: [y/n]')
-    user_input = str(input())
+    user_input = str(input()).lower()
     if user_input == 'y':
         if data_for == 'all':
-            create_db()
+            create_base_db()
             print('Your db has been reset. You have a clean slate again...')
     else:
         print('Good choice. Past is important to remember...')
 
 
-def create_db():
-    template = """{"logs": []}"""
-    with open('db/timer.json', 'w') as f:
-        f.write(template)
-
-
-def get_date():
-    return dt.utcnow().strftime(DATE_FORMAT)
-
-
-def get_time(local=False):
-    if local:
-        return dt.now().strftime(TIME_FORMAT)
-    else:
-        return dt.utcnow().strftime(TIME_FORMAT)
-
-
-def play_stop_timer():
-    _suppress_verbose_playback_output()
-
-
-def _suppress_verbose_playback_output():
-    devnull = open(os.devnull, 'w')
-    subprocess.call(
-        [PLAYER, "-nodisp", "-autoexit", "-hide_banner", 'sounds/stop.mp3'],
-        stdout=devnull, stderr=devnull)
-
-
 if __name__ == '__main__':
-    time_machine()
+    cli()
