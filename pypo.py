@@ -41,7 +41,7 @@ def timer(until, task):
         print_session_end(task)
     finally:
         play_stop_timer()
-        print('Logging your work..')
+        print('\nLogging your work..')
         print(
             f'Good job. Remember to take a break now! ... {TAKE_A_BREAK_EMOJI}️ ')
         print(f'Take a walk, have water and breathe ... ')
